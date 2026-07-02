@@ -1,0 +1,71 @@
+
+datasource db {
+  provider = "postgresql"
+  // Hapus baris url di sini
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. MODEL UTAMA: PRODUK
+model Product {
+  id           String      @id @default(uuid()) // UUID v4 untuk keamanan id terekspos
+  skuCode      String      @unique @map("sku_code") // Pencarian cepat dengan index unique otomatis
+  name         String
+  description  String?     @db.Text
+  price        Decimal     @db.Decimal(12, 2) // Menghindari isu floating-point, aman untuk finansial
+  currentStock Int         @default(0) @map("current_stock")
+  status       String      @default("active") // "active", "draft", "out_of_stock"
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  
+  // Relasi ke detail pesanan
+  orderItems   OrderItem[]
+
+  @@map("products") // Penamaan tabel jamak & lowercase (standard PostgreSQL)
+}
+
+// 2. MODEL UTAMA: INDUK PESANAN (ORDERS)
+model Order {
+  id            String      @id @default(uuid())
+  invoiceNumber String      @unique @map("invoice_number") // Format dinamis seperti INV/20260701/XXXX
+  customerName  String      @map("customer_name") // Untuk single-vendor tanpa login, nama pembeli dicatat langsung
+  customerEmail String      @map("customer_email")
+  totalAmount   Decimal     @db.Decimal(12, 2) @map("total_amount")
+  paymentStatus String      @default("pending") @map("payment_status") // "pending", "paid", "failed"
+  shippingStatus String     @default("pending") @map("shipping_status") // "pending", "processing", "shipped", "delivered"
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // Relasi satu ke banyak dengan detail barang yang dibeli
+  items         OrderItem[]
+
+  @@map("orders")
+}
+
+// 3. MODEL RELASI: DETAIL PESANAN (ORDER ITEMS)
+model OrderItem {
+  id              String   @id @default(uuid())
+  orderId         String   @map("order_id")
+  productId       String   @map("product_id")
+  quantity        Int
+  priceAtPurchase Decimal  @db.Decimal(12, 2) @map("price_at_purchase") // WAJIB dicatat untuk menjaga riwayat jika harga produk berubah
+
+  // Relasi database
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("order_items")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Akan diisi oleh password yang sudah di-hash via bcrypt
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}

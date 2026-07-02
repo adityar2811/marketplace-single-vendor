@@ -1,0 +1,17 @@
+# Dependency Node.js (Sangat berat, tidak perlu di-upload)
+node_modules/
+dist/
+.env
+.env.local
+
+# File internal sistem operasi
+.DS_Store
+Thumbs.db
+
+# Log eror
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# File log atau build dari Prisma
+.prisma/
