@@ -1,4 +1,3 @@
-// frontend/src/components/CheckoutSimulation.jsx
 import React, { useState } from "react";
 import API from "../api";
 
@@ -23,7 +22,6 @@ const CheckoutSimulation = ({ products, onOrderSuccess }) => {
     setError(null);
     setSuccessData(null);
 
-    // Siapkan payload sesuai dengan struktur yang diminta oleh OrderController backend
     const payload = {
       customerName: formData.customerName,
       customerEmail: formData.customerEmail,
@@ -39,10 +37,8 @@ const CheckoutSimulation = ({ products, onOrderSuccess }) => {
       const response = await API.post("/orders/checkout", payload);
       setSuccessData(response.data.order);
 
-      // Reset form kuantitas dan produk
       setFormData({ ...formData, productId: "", quantity: 1 });
 
-      // Callback ke App.jsx untuk memicu pengambilan data ulang stok produk dari database
       onOrderSuccess();
     } catch (err) {
       console.error(err);

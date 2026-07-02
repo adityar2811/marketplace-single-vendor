@@ -1,4 +1,3 @@
-// frontend/src/components/ProductForm.jsx
 import React, { useState } from "react";
 import API from "../api";
 
@@ -25,7 +24,6 @@ const ProductForm = ({ onProductAdded }) => {
     setSuccess(false);
 
     try {
-      // Kirim data ke API backend
       const response = await API.post("/products", formData);
 
       setSuccess(true);
@@ -37,7 +35,6 @@ const ProductForm = ({ onProductAdded }) => {
         currentStock: "",
       }); // Reset form
 
-      // Trigger fungsi callback untuk memperbarui tabel di halaman utama
       onProductAdded(response.data.data);
     } catch (err) {
       console.error(err);

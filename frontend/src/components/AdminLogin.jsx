@@ -1,4 +1,3 @@
-// frontend/src/components/AdminLogin.jsx
 import React, { useState } from "react";
 import API from "../api";
 
@@ -19,14 +18,11 @@ const AdminLogin = ({ onLoginSuccess }) => {
     try {
       const response = await API.post("/auth/login", formData);
 
-      // Ambil token dari response backend
       const { token, admin } = response.data;
 
-      // Simpan token ke localStorage browser agar aman saat page di-refresh
       localStorage.setItem("adminToken", token);
       localStorage.setItem("adminName", admin.name);
 
-      // Picu fungsi callback untuk mengubah state di App.jsx
       onLoginSuccess(token, admin.name);
     } catch (err) {
       console.error(err);

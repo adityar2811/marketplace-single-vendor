@@ -1,4 +1,3 @@
-// frontend/src/components/ProductTable.jsx
 import React from "react";
 
 const ProductTable = ({ products }) => {
@@ -24,7 +23,6 @@ const ProductTable = ({ products }) => {
               key={product.id}
               className="bg-white border-b hover:bg-gray-50 transition-colors"
             >
-              {/* Kolom 1: Menggabungkan Nama & SKU (Efisiensi Horizontal) */}
               <td className="px-6 py-4">
                 <div className="flex flex-col">
                   <span className="font-semibold text-gray-900 text-base">
@@ -36,7 +34,6 @@ const ProductTable = ({ products }) => {
                 </div>
               </td>
 
-              {/* Kolom 2: Menggabungkan Stok & Status */}
               <td className="px-6 py-4">
                 <div className="flex flex-col">
                   <span className="text-gray-700 font-medium">
@@ -54,7 +51,6 @@ const ProductTable = ({ products }) => {
                 </div>
               </td>
 
-              {/* Kolom 3: Harga Finansial */}
               <td className="px-6 py-4 font-semibold text-gray-900">
                 Rp {parseFloat(product.price).toLocaleString("id-ID")}
               </td>
