@@ -12,15 +12,19 @@ const CustomerMarketplace = ({ products, fetchProducts }) => {
   });
   const [buyerInfo, setBuyerInfo] = useState({ name: "", email: "" });
 
+  // 🔍 STATE BARU: Untuk Kontrol Pencarian dan Filter
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hideOutOfStock, setHideOutOfStock] = useState(false);
+
   // 1. Fungsi Tambah ke Keranjang Belanja
   const handleAddToCart = (product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
       if (existingItem) {
-        // Jika barang sudah ada, cek apakah kuantitas melebihi stok live
-        if (existingItem.quantity >= product.stock) {
+        // ⚡ UBAH product.quantity menjadi product.currentStock
+        if (existingItem.quantity >= product.currentStock) {
           alert(
-            `Maaf, batas maksimal pembelian sesuai stok hanya ${product.stock} pcs.`,
+            `Maaf, batas maksimal pembelian sesuai stok hanya ${product.currentStock} pcs.`,
           );
           return prevCart;
         }
@@ -47,7 +51,24 @@ const CustomerMarketplace = ({ products, fetchProducts }) => {
     );
   };
 
-  // 3. Hitung Total Belanja
+  // 🧪 LOGIKA FILTER & PENCARIAN REAL-TIME
+  // 🧪 LOGIKA FILTER & PENCARIAN REAL-TIME (SUDAH DIPROTEKSI AMAN)
+  // Ubah bagian ini agar menggunakan Number() juga saat mengecek stok habis
+  const filteredProducts = products.filter((product) => {
+    const productName = product.name ? product.name.toLowerCase() : "";
+    const productSku = product.skuCode ? product.skuCode.toLowerCase() : ""; // ⚡ UBAH sku menjadi skuCode
+    const query = searchQuery.toLowerCase();
+
+    const matchesSearch =
+      productName.includes(query) || productSku.includes(query);
+
+    // ⚡ UBAH product.quantity menjadi product.currentStock
+    const currentQty = product.currentStock ? Number(product.currentStock) : 0;
+    const matchesStock = hideOutOfStock ? currentQty > 0 : true;
+
+    return matchesSearch && matchesStock;
+  });
+
   const totalBelanja = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
@@ -61,11 +82,8 @@ const CustomerMarketplace = ({ products, fetchProducts }) => {
     }).format(number);
   };
 
-  // 4. Eksekusi Multi-Item Checkout Ke Backend
   const handleCheckout = async () => {
     if (cart.length === 0) return;
-
-    // Validasi tambahan agar pembeli wajib mengisi nama & email
     if (!buyerInfo.name || !buyerInfo.email) {
       setCheckoutMessage({
         type: "error",
@@ -83,7 +101,6 @@ const CustomerMarketplace = ({ products, fetchProducts }) => {
     }));
 
     try {
-      // SUNTIKKAN buyerInfo.name dan buyerInfo.email ke payload backend
       await API.post("/orders/checkout", {
         customerName: buyerInfo.name,
         customerEmail: buyerInfo.email,
@@ -95,7 +112,7 @@ const CustomerMarketplace = ({ products, fetchProducts }) => {
         text: "🎉 Transaksi Berhasil! Pengaman stok sukses memotong data.",
       });
       setCart([]);
-      setBuyerInfo({ name: "", email: "" }); // Reset form pembeli
+      setBuyerInfo({ name: "", email: "" });
       fetchProducts();
     } catch (err) {
       console.error(err);
@@ -122,19 +139,52 @@ const CustomerMarketplace = ({ products, fetchProducts }) => {
       </nav>
 
       <div className="max-w-6xl mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Kolom Kiri: Katalog Grid Produk */}
-        <div className="lg:col-span-2">
-          <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        {/* Kolom Kiri: Panel Kontrol Pencarian & Katalog Grid Produk */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* 🔍 BARU: Bilah Pencarian & Filter Kontrol ala Shopee Component */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="w-full sm:max-w-md relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                🔍
+              </span>
+              <input
+                type="text"
+                placeholder="Cari produk impianmu di sini..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-center">
+              <input
+                type="checkbox"
+                id="hideStock"
+                checked={hideOutOfStock}
+                onChange={(e) => setHideOutOfStock(e.target.checked)}
+                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label
+                htmlFor="hideStock"
+                className="text-sm font-medium text-gray-600 cursor-pointer select-none"
+              >
+                Sembunyikan Stok Habis
+              </label>
+            </div>
+          </div>
+
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 pt-2">
             🛍️ Semua Produk Pilihan
           </h2>
 
-          {products.length === 0 ? (
-            <div className="bg-white border rounded-xl p-8 text-center text-gray-400">
-              Toko belum mengunggah produk.
+          {/* Render menggunakan array hasil filter */}
+          {filteredProducts.length === 0 ? (
+            <div className="bg-white border rounded-xl p-12 text-center text-gray-400 font-medium shadow-sm">
+              ❌ Produk tidak ditemukan. Coba kata kunci lain!
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -151,6 +201,7 @@ const CustomerMarketplace = ({ products, fetchProducts }) => {
             <h3 className="font-bold text-gray-800 text-base border-b pb-3 mb-4 flex items-center gap-2">
               🛒 Keranjang Belanjaan
             </h3>
+
             <div className="space-y-2 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
                 📋 Informasi Pengiriman
@@ -176,6 +227,7 @@ const CustomerMarketplace = ({ products, fetchProducts }) => {
                 required
               />
             </div>
+
             {checkoutMessage.text && (
               <div
                 className={`p-3 rounded-lg mb-4 text-xs font-semibold ${checkoutMessage.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}

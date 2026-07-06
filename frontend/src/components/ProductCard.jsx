@@ -2,7 +2,9 @@
 import React from "react";
 
 const ProductCard = ({ product, onAddToCart }) => {
-  const isOutOfStock = product.stock <= 0;
+  // ⚡ PAKSA MENJADI ANGKA MURNI: Menggunakan Number() untuk menghindari bug tipe data String
+  const currentStock = product.currentStock ? Number(product.currentStock) : 0;
+  const isOutOfStock = currentStock <= 0;
 
   // Format angka ke Rupiah
   const formatRupiah = (number) => {
@@ -15,7 +17,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden flex flex-col h-full">
-      {/* Gambar Placeholder ala Shopee */}
+      {/* Gambar Placeholder */}
       <div className="bg-gray-100 h-40 flex items-center justify-center text-gray-400 text-4xl font-bold">
         📦
       </div>
@@ -24,7 +26,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         <h4 className="font-medium text-gray-800 text-sm line-clamp-2 min-h-[40px] mb-1">
           {product.name}
         </h4>
-        <p className="text-xs text-gray-400 mb-2">SKU: {product.sku}</p>
+        <p className="text-xs text-gray-400 mb-2">SKU: {product.skuCode}</p>
 
         <div className="mt-auto">
           <div className="text-orange-500 font-bold text-base mb-1">
@@ -32,10 +34,11 @@ const ProductCard = ({ product, onAddToCart }) => {
           </div>
 
           <div className="flex justify-between items-center mt-2">
+            {/* Tampilan Status Hijau jika stok > 0 */}
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isOutOfStock ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
             >
-              {isOutOfStock ? "Stok Habis" : `Stok: ${product.stock}`}
+              {isOutOfStock ? "Stok Habis" : `Stok: ${currentStock}`}
             </span>
           </div>
 

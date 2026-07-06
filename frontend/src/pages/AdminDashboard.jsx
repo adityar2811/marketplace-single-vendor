@@ -37,7 +37,6 @@ const AdminDashboard = ({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
             <ProductForm onProductAdded={handleProductAdded} />
-            {/* Kita biarkan simulasi ini di sini dulu untuk cadangan testing admin */}
             <CheckoutSimulation
               products={products}
               onOrderSuccess={fetchProducts}
